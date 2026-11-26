@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kuis Bilangan Rasional - Kelas 7 MTs</title>
+<style>
+:root{--ink:#111;--blue:#0b4fd6;--org:#c2410c;--soft:#eef3ff;--ok:#0a6b2d;--no:#b91c1c}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:20px/1.6 Arial,Helvetica,sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px}
+header{background:var(--blue);color:#fff;border-radius:14px;padding:14px 18px}
+h1{font-size:1.5rem;margin:0}
+h2{font-size:1.3rem;margin:0 0 8px;color:var(--blue)}
+.card{border:3px solid var(--blue);border-radius:14px;padding:16px;margin:16px 0}
+.tag{display:inline-block;font-size:.85rem;font-weight:700;color:var(--blue);border:2px solid var(--blue);border-radius:20px;padding:0 10px}
+.q{font-weight:700;margin:8px 0}
+.note{font-weight:700}
+.hint{font-size:.9rem;margin:4px 0}
+.warn{color:var(--no);font-weight:700;margin:4px 0}
+.hide{display:none!important}
+button{font:inherit;font-weight:700;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:12px 18px;margin:8px 8px 0 0;cursor:pointer;min-height:48px}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:4px solid #f59e0b;outline-offset:2px}
+.opt{display:block;width:100%;text-align:left;background:#fff;color:var(--ink);border:3px solid var(--blue);margin:8px 0;padding:10px 14px}
+.opt:disabled{opacity:1;cursor:default}
+.opt.sel,.opt.paired{background:var(--soft)}
+.opt.sel{border-style:dashed;border-width:4px}
+.opt.ok{border-color:var(--ok);background:#e7f6ec}
+.opt.no{border-color:var(--no);background:#fdeaea}
+.bs{display:flex;gap:10px}
+.bs .opt{text-align:center;font-size:1.2rem}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.badge{display:inline-block;min-width:28px;text-align:center;background:var(--blue);color:#fff;border-radius:14px;font-size:.9rem;margin-right:6px}
+.isi{display:block;width:100%;font:inherit;padding:10px;border:3px solid var(--ink);border-radius:10px;margin:6px 0}
+.fb{border-radius:10px;padding:12px;margin-top:14px;border:3px solid}
+.fb.good{background:#e7f6ec;border-color:var(--ok)}
+.fb.bad{background:#fdeaea;border-color:var(--no)}
+.fb div{margin-top:6px}
+.pb{height:16px;border:3px solid var(--blue);border-radius:10px;overflow:hidden;background:#fff;margin-top:4px}
+.pb i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.vis svg{display:block;width:100%;height:auto;margin:8px auto;background:#fff;border:3px solid var(--blue);border-radius:10px}
+.skor{font-size:2.6rem;font-weight:700;text-align:center;line-height:1.2}
+.center{text-align:center}
+.rev{border-left:8px solid var(--no);background:#fdf3f3;border-radius:8px;padding:10px 14px;margin:12px 0}
+.rev div{margin-top:4px}
+ul{padding-left:24px;margin:6px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<header><h1 id="judul"></h1><div id="sub"></div></header>
+<div id="app"></div>
+</main>
+
+<script>
+/* =====================================================================
+   BAGIAN UNTUK GURU: edit soal di sini. Tidak perlu mengubah kode di bawahnya.
+   Setiap soal punya: tipe, teks, bahas (pembahasan), poin (boleh dihilangkan = 1),
+   dan visual (boleh dihilangkan). Teks boleh memakai tag HTML sederhana seperti <b>.
+
+   tipe "pg"     : opsi:[...], kunci: nomor opsi benar (mulai dari 0)
+   tipe "pgk"    : opsi:[...], kunci:[nomor-nomor benar]
+   tipe "bs"     : kunci: true (Benar) atau false (Salah)
+   tipe "jodoh"  : pasangan:[["kiri","kanan"],...]  (kanan diacak otomatis)
+   tipe "isian"  : nilai: angka jawaban (misal 0.75), jawabanBenar: teks kunci.
+                   Siswa boleh menulis 3/4, 0,75, atau 1 3/4 (campuran).
+   tipe "uraian" : kata:[[sinonim1,sinonim2],[...]] = kelompok kata kunci,
+                   min: jumlah kelompok yang harus muncul, contoh: teks contoh jawaban
+
+   visual cokelat: {jenis:"cokelat", bagian:kotak per batang, isi:kotak berwarna, batang:jumlah batang (opsional)}
+   visual garis  : {jenis:"garis", min:-3, max:3, bagi:pembagian tiap 1 satuan, titik:[{nama:"A",nilai:-1.5}]}
+   ===================================================================== */
+var JUDUL="Kuis Bilangan Rasional";
+var SUB="Matematika - Kelas 7 MTs - Tingkat sedang";
+var KKM=70; /* nilai minimal dianggap tuntas */
+
+var SOAL=[
+{tipe:"pg",teks:"Satu batang cokelat dibagi menjadi 5 kotak sama besar. Kotak <b>cokelat tua</b> sudah dimakan. Pecahan yang menunjukkan bagian yang dimakan adalah ...",
+ visual:{jenis:"cokelat",bagian:5,isi:3},opsi:["3/5","2/5","3/2","5/3"],kunci:0,
+ bahas:"Ada 3 kotak yang dimakan dari 5 kotak seluruhnya. Jadi bagian yang dimakan adalah 3/5."},
+
+{tipe:"pg",teks:"Perhatikan garis bilangan. Setiap 1 satuan dibagi 2 sama panjang. Titik A mewakili bilangan ...",
+ visual:{jenis:"garis",min:-3,max:3,bagi:2,titik:[{nama:"A",nilai:-1.5}]},opsi:["−3/2","−1/2","3/2","−2/3"],kunci:0,
+ bahas:"Titik A ada di kiri 0, tepat di tengah antara −2 dan −1. Jadi A = −1 1/2 = −3/2."},
+
+{tipe:"bs",teks:"Benar atau salah? Bilangan bulat −5 termasuk bilangan rasional karena dapat ditulis −5/1.",kunci:true,
+ bahas:"Benar. Setiap bilangan bulat bisa ditulis sebagai pecahan dengan penyebut 1, sehingga termasuk bilangan rasional."},
+
+{tipe:"pgk",teks:"Pilih <b>semua</b> bilangan yang termasuk bilangan rasional.",opsi:["0,75","−4","2/0","7/3"],kunci:[0,1,3],
+ bahas:"0,75 = 3/4. −4 = −4/1. 7/3 sudah berbentuk pecahan. Namun 2/0 bukan bilangan rasional karena penyebut tidak boleh 0."},
+
+{tipe:"jodoh",teks:"Jodohkan setiap pecahan dengan bentuk desimalnya.",
+ pasangan:[["1/2","0,5"],["3/4","0,75"],["1/4","0,25"],["2/5","0,4"]],
+ bahas:"Bagi pembilang dengan penyebut. 1 : 2 = 0,5. 3 : 4 = 0,75. 1 : 4 = 0,25. 2 : 5 = 0,4."},
+
+{tipe:"isian",teks:"Cokelat tua pada gambar adalah bagian yang dimakan. Satu batang berisi 4 kotak. Tulis bagian yang dimakan dalam bentuk desimal.",
+ visual:{jenis:"cokelat",bagian:4,isi:7,batang:2},nilai:1.75,jawabanBenar:"1,75 (atau 7/4)",
+ bahas:"Ada 7 kotak, setiap batang berisi 4 kotak. Jadi yang dimakan 7/4 batang. 7 : 4 = 1,75."},
+
+{tipe:"pg",teks:"Manakah bilangan yang paling besar?",opsi:["−3/4","−1/2","−2/3","−5/6"],kunci:1,
+ bahas:"Samakan penyebut menjadi 12: −9/12, −6/12, −8/12, −10/12. Yang paling dekat ke 0 (paling kanan) adalah −6/12 = −1/2."},
+
+{tipe:"bs",teks:"Benar atau salah? −2/3 lebih besar daripada −1/3.",kunci:false,
+ bahas:"Salah. −2/3 letaknya lebih jauh di kiri 0 daripada −1/3. Jadi −2/3 lebih kecil. Makin ke kiri, makin kecil."},
+
+{tipe:"isian",teks:"Setiap 1 satuan dibagi 4 sama panjang. Tulis bilangan yang diwakili titik C.",
+ visual:{jenis:"garis",min:-2,max:2,bagi:4,titik:[{nama:"C",nilai:-0.75}]},nilai:-0.75,jawabanBenar:"−3/4 (atau −0,75)",
+ bahas:"C ada di kiri 0 dan berjarak 3 garis kecil dari 0. Setiap garis kecil bernilai 1/4. Jadi C = −3/4."},
+
+{tipe:"uraian",teks:"Jelaskan dengan kalimatmu sendiri: mengapa 5/0 bukan bilangan rasional?",
+ kata:[["penyebut"],["0","nol"],["tidak boleh","tidak bisa","tidak terdefinisi","tak terdefinisi","tidak ada"]],min:2,
+ contoh:"Penyebut pecahan tidak boleh 0, karena pembagian dengan nol tidak terdefinisi.",
+ bahas:"Bilangan rasional ditulis a/b dengan b tidak sama dengan 0. Pembagian dengan nol tidak terdefinisi, jadi 5/0 bukan bilangan rasional."}
+];
+/* ======================= AKHIR BAGIAN GURU ======================= */
+
+var NAMA={pg:"Pilihan ganda",pgk:"Pilihan ganda kompleks",bs:"Benar atau salah",jodoh:"Menjodohkan",isian:"Isian singkat",uraian:"Uraian"};
+var $=function(i){return document.getElementById(i)};
+var app=$("app"),cur=0,hasil=[];
+$("judul").textContent=JUDUL;$("sub").textContent=SUB;document.title=JUDUL;
+
+function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!==undefined)e.innerHTML=h;return e}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function fmt(n){return n<0?"\u2212"+(-n):""+n}
+function acak(a){var b=a.slice(),i,j,t,same=true;
+ if(b.length<2)return b;
+ while(same){for(i=b.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=b[i];b[i]=b[j];b[j]=t}
+  same=b.every(function(x,k){return x===a[k]})}
+ return b}
+function poin(q){return q.poin||1}
+
+/* ---------- Gambar (SVG) ---------- */
+function svgCokelat(v){
+ var n=v.bagian,b=v.batang||Math.ceil(v.isi/n),cw=34,ch=36,pd=8,gp=14;
+ var W=n*cw+pd*2,H=b*(ch+gp)+pd*2-gp,k=0,r,c,y,on;
+ var s='<svg viewBox="0 0 '+W+' '+H+'" style="max-width:'+Math.round(W*1.7)+'px" role="img" aria-label="Gambar cokelat: '+b+' batang, tiap batang '+n+' kotak, '+v.isi+' kotak berwarna cokelat tua">';
+ for(r=0;r<b;r++){
+  y=pd+r*(ch+gp);
+  s+='<rect x="'+(pd-4)+'" y="'+(y-4)+'" width="'+(n*cw+8)+'" height="'+(ch+8)+'" rx="8" fill="#3b1d00"/>';
+  for(c=0;c<n;c++){
+   on=k<v.isi;k++;
+   s+='<rect x="'+(pd+c*cw+2)+'" y="'+y+'" width="'+(cw-4)+'" height="'+ch+'" rx="5" fill="'+(on?"#b35a2a":"#f6e7c8")+'"/>';
+  }
+ }
+ return s+'</svg>';
+}
+function svgGaris(v){
+ var mn=v.min,mx=v.max,bg=v.bagi||1,L=30,R=570,y=62,n,x,big;
+ function X(a){return L+(a-mn)/(mx-mn)*(R-L)}
+ var nm=(v.titik||[]).map(function(t){return t.nama}).join(", ");
+ var s='<svg viewBox="0 0 600 120" role="img" aria-label="Garis bilangan dari '+fmt(mn)+' sampai '+fmt(mx)+', titik '+nm+'">';
+ s+='<line x1="'+(L-10)+'" y1="'+y+'" x2="'+(R+10)+'" y2="'+y+'" stroke="#111" stroke-width="4" stroke-linecap="round"/>';
+ for(n=mn*bg;n<=mx*bg;n++){
+  x=X(n/bg);big=(n%bg===0);
+  s+='<line x1="'+x+'" y1="'+(y-(big?15:9))+'" x2="'+x+'" y2="'+(y+(big?15:9))+'" stroke="#111" stroke-width="'+(big?3:2)+'"/>';
+  if(big)s+='<text x="'+x+'" y="'+(y+42)+'" text-anchor="middle" font-size="26" font-weight="700" fill="#111">'+fmt(n/bg)+'</text>';
+ }
+ (v.titik||[]).forEach(function(t){
+  x=X(t.nilai);
+  s+='<circle cx="'+x+'" cy="'+y+'" r="11" fill="#c2410c" stroke="#fff" stroke-width="3"/>'+
+     '<text x="'+x+'" y="'+(y-24)+'" text-anchor="middle" font-size="28" font-weight="700" fill="#c2410c">'+t.nama+'</text>';
+ });
+ return s+'</svg>';
+}
+function visual(v){var d=el("div","vis");d.innerHTML=v.jenis==="cokelat"?svgCokelat(v):svgGaris(v);return d}
+
+/* ---------- Pembaca angka untuk isian ---------- */
+function parseNum(s){
+ s=s.trim().replace(/[\u2212\u2013\u2014]/g,"-").replace(",",".");
+ var m=s.match(/^(-?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+ if(m&&+m[4]!==0)return (m[1]?-1:1)*(+m[2]+(+m[3])/(+m[4]));
+ s=s.replace(/\s+/g,"");
+ m=s.match(/^(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)$/);
+ if(m)return (+m[2]===0)?NaN:(+m[1])/(+m[2]);
+ if(/^-?\d+(\.\d+)?$/.test(s))return parseFloat(s);
+ return NaN;
+}
+
+/* ---------- Tombol periksa ---------- */
+function tombolPeriksa(area,fn){var b=el("button","","Periksa jawaban");b.onclick=fn;area.appendChild(b);return b}
+
+/* ---------- Penangan tiap jenis soal ---------- */
+var H={};
+H.pg=function(q,area,done){
+ var btns=[],L="ABCDEF";
+ q.opsi.forEach(function(t,i){
+  var b=el("button","opt","<b>"+L[i]+".</b> "+t);
+  b.onclick=function(){
+   btns.forEach(function(x,j){x.disabled=true;
+    if(j===q.kunci){x.classList.add("ok");x.innerHTML="\u2713 "+x.innerHTML}
+    else if(j===i){x.classList.add("no");x.innerHTML="\u2717 "+x.innerHTML}});
+   done({ok:i===q.kunci,mine:L[i]+". "+q.opsi[i],key:L[q.kunci]+". "+q.opsi[q.kunci]});
+  };
+  btns.push(b);area.appendChild(b);
+ });
+};
+H.bs=function(q,area,done){
+ var w=el("div","bs"),btns=[];
+ [true,false].forEach(function(v){
+  var b=el("button","opt",v?"Benar":"Salah");
+  b.onclick=function(){
+   btns.forEach(function(x,j){var val=(j===0);x.disabled=true;
+    if(val===q.kunci){x.classList.add("ok");x.innerHTML="\u2713 "+x.innerHTML}
+    else if(val===v){x.classList.add("no");x.innerHTML="\u2717 "+x.innerHTML}});
+   done({ok:v===q.kunci,mine:v?"Benar":"Salah",key:q.kunci?"Benar":"Salah"});
+  };
+  btns.push(b);w.appendChild(b);
+ });
+ area.appendChild(w);
+};
+H.pgk=function(q,area,done){
+ var sel=[],btns=[],pb;
+ area.appendChild(el("p","hint","Boleh memilih lebih dari satu jawaban."));
+ function gambar(i){btns[i].innerHTML=(sel[i]?"\u2611 ":"\u2610 ")+q.opsi[i];btns[i].setAttribute("aria-pressed",sel[i]?"true":"false")}
+ q.opsi.forEach(function(t,i){
+  var b=el("button","opt");btns.push(b);sel[i]=false;gambar(i);
+  b.onclick=function(){sel[i]=!sel[i];b.classList.toggle("sel",sel[i]);gambar(i);pb.disabled=!sel.some(Boolean)};
+  area.appendChild(b);
+ });
+ pb=tombolPeriksa(area,function(){
+  var ok=true;
+  q.opsi.forEach(function(t,i){
+   var should=q.kunci.indexOf(i)>=0;if(should!==sel[i])ok=false;
+   btns[i].disabled=true;btns[i].classList.remove("sel");
+   if(should){btns[i].classList.add("ok");btns[i].innerHTML="\u2713 "+(sel[i]?"":"(seharusnya dipilih) ")+t}
+   else if(sel[i]){btns[i].classList.add("no");btns[i].innerHTML="\u2717 "+t}
+  });
+  pb.disabled=true;
+  var mine=q.opsi.filter(function(t,i){return sel[i]}).join(", ");
+  done({ok:ok,mine:mine,key:q.kunci.map(function(i){return q.opsi[i]}).join(", ")});
+ });
+ pb.disabled=true;
+};
+H.jodoh=function(q,area,done){
+ var n=q.pasangan.length,kanan=acak(q.pasangan.map(function(p,i){return {t:p[1],o:i}}));
+ var pair=[],sel=null,Lb=[],Rb=[],pb,grid=el("div","match"),cl=el("div"),cr=el("div"),i;
+ area.appendChild(el("p","hint","Ketuk satu item di kiri, lalu ketuk pasangannya di kanan. Ketuk lagi untuk membatalkan."));
+ function terisi(){var c=0,k;for(k=0;k<n;k++)if(pair[k]!==undefined)c++;return c}
+ function gambar(){
+  q.pasangan.forEach(function(p,k){
+   Lb[k].innerHTML=(pair[k]!==undefined?'<span class="badge">'+(k+1)+'</span>':"")+p[0];
+   Lb[k].className="opt"+(sel===k?" sel":"")+(pair[k]!==undefined?" paired":"");
+  });
+  kanan.forEach(function(r,j){
+   var li=pair.indexOf(r.o);
+   Rb[j].innerHTML=(li>=0?'<span class="badge">'+(li+1)+'</span>':"")+r.t;
+   Rb[j].className="opt"+(li>=0?" paired":"");
+  });
+  pb.disabled=(terisi()<n);
+ }
+ q.pasangan.forEach(function(p,k){
+  var b=el("button","opt");
+  b.onclick=function(){if(pair[k]!==undefined){pair[k]=undefined;sel=k}else sel=(sel===k?null:k);gambar()};
+  Lb.push(b);cl.appendChild(b);
+ });
+ kanan.forEach(function(r,j){
+  var b=el("button","opt");
+  b.onclick=function(){
+   var ex=pair.indexOf(r.o);
+   if(sel!==null){if(ex>=0)pair[ex]=undefined;pair[sel]=r.o;sel=null}
+   else if(ex>=0)pair[ex]=undefined;
+   gambar();
+  };
+  Rb.push(b);cr.appendChild(b);
+ });
+ grid.appendChild(cl);grid.appendChild(cr);area.appendChild(grid);
+ pb=tombolPeriksa(area,function(){
+  var ok=true;
+  q.pasangan.forEach(function(p,k){
+   var bener=(pair[k]===k);if(!bener)ok=false;
+   Lb[k].disabled=true;Lb[k].classList.remove("sel","paired");Lb[k].classList.add(bener?"ok":"no");
+   Lb[k].innerHTML=(bener?"\u2713 ":"\u2717 ")+Lb[k].innerHTML;
+  });
+  Rb.forEach(function(b){b.disabled=true});
+  pb.disabled=true;
+  done({ok:ok,
+   mine:q.pasangan.map(function(p,k){return p[0]+" \u2192 "+q.pasangan[pair[k]][1]}).join("; "),
+   key:q.pasangan.map(function(p){return p[0]+" = "+p[1]}).join("; ")});
+ });
+ gambar();
+};
+H.isian=function(q,area,done){
+ var inp=el("input","isi"),warn=el("p","warn hide"),pb;
+ inp.type="text";inp.placeholder="Ketik jawabanmu";inp.setAttribute("autocomplete","off");inp.setAttribute("autocapitalize","off");inp.setAttribute("aria-label","Jawaban");
+ area.appendChild(inp);
+ area.appendChild(el("p","hint","Boleh pecahan (contoh 3/4) atau desimal (contoh 0,75). Untuk bilangan negatif, awali dengan tanda minus (-)."));
+ area.appendChild(warn);
+ function periksa(){
+  var v=parseNum(inp.value);
+  if(isNaN(v)){warn.textContent="Tulis dalam bentuk angka, misalnya 3/4 atau 0,75.";warn.classList.remove("hide");return}
+  warn.classList.add("hide");
+  inp.disabled=true;pb.disabled=true;
+  done({ok:Math.abs(v-q.nilai)<1e-9,mine:inp.value.trim(),key:q.jawabanBenar});
+ }
+ pb=tombolPeriksa(area,periksa);
+ inp.onkeydown=function(e){if(e.key==="Enter")periksa()};
+};
+H.uraian=function(q,area,done){
+ var ta=el("textarea","isi"),warn=el("p","warn hide"),pb;
+ ta.rows=4;ta.placeholder="Tulis penjelasanmu dengan kalimat lengkap...";ta.setAttribute("aria-label","Jawaban uraian");
+ area.appendChild(ta);area.appendChild(warn);
+ pb=tombolPeriksa(area,function(){
+  var raw=ta.value.trim(),txt=raw.toLowerCase();
+  if(txt.length<5){warn.textContent="Tulis jawabanmu dulu dengan kalimat.";warn.classList.remove("hide");return}
+  warn.classList.add("hide");
+  var cnt=0,miss=[];
+  q.kata.forEach(function(g){
+   var f=g.some(function(w){return txt.indexOf(w.toLowerCase())>=0});
+   if(f)cnt++;else miss.push(g[0]);
+  });
+  var need=q.min||q.kata.length;
+  ta.disabled=true;pb.disabled=true;
+  done({ok:cnt>=need,mine:raw,key:q.contoh,label:"Contoh jawaban",
+   note:"Kata kunci yang ditemukan: "+cnt+" dari "+q.kata.length+(miss.length?". Yang belum muncul: "+esc(miss.join(", "))+".":".")});
+ });
+};
+
+/* ---------- Alur kuis ---------- */
+function progress(i){
+ var w=el("div","","");
+ w.innerHTML='<div class="note">Soal '+(i+1)+' dari '+SOAL.length+'</div><div class="pb" role="progressbar" aria-valuemin="0" aria-valuemax="'+SOAL.length+'" aria-valuenow="'+i+'"><i style="width:'+(i/SOAL.length*100)+'%"></i></div>';
+ return w;
+}
+function intro(){
+ hasil=[];app.innerHTML="";
+ var c=el("section","card");
+ c.innerHTML='<h2>Siap mengerjakan?</h2><p>Ada <b>'+SOAL.length+' soal</b>. Jawabanmu langsung diperiksa dan ada pembahasannya.</p><ul><li>Baca soal dan lihat gambarnya dengan teliti.</li><li>Pada soal bertombol Periksa, tekan tombolnya setelah selesai menjawab.</li><li>Di akhir, kamu bisa melihat skor dan soal yang salah.</li></ul>';
+ var b=el("button","","Mulai kuis");b.onclick=function(){tampil(0)};
+ c.appendChild(b);app.appendChild(c);
+}
+function tampil(i){
+ cur=i;var q=SOAL[i];app.innerHTML="";
+ app.appendChild(progress(i));
+ var card=el("section","card");
+ card.appendChild(el("span","tag",NAMA[q.tipe]));
+ card.appendChild(el("p","q",(i+1)+". "+q.teks));
+ if(q.visual)card.appendChild(visual(q.visual));
+ var area=el("div","area");card.appendChild(area);
+ var fb=el("div","fb hide");fb.id="fb";fb.setAttribute("aria-live","polite");
+ var nx=el("button","hide",i<SOAL.length-1?"Soal berikutnya":"Lihat skor");nx.id="nx";
+ nx.onclick=function(){if(i<SOAL.length-1)tampil(i+1);else akhir()};
+ card.appendChild(fb);card.appendChild(nx);app.appendChild(card);
+ window.scrollTo(0,0);
+ H[q.tipe](q,area,selesai);
+}
+function selesai(r){
+ var q=SOAL[cur],fb=$("fb"),nx=$("nx");
+ hasil[cur]={ok:r.ok,mine:r.mine,key:r.key,label:r.label||"Kunci"};
+ fb.className="fb "+(r.ok?"good":"bad");
+ fb.innerHTML="<b>"+(r.ok?"\u2713 Benar!":"\u2717 Belum tepat.")+"</b>"+
+  (r.note?"<div>"+r.note+"</div>":"")+
+  (r.ok?"":"<div><b>"+hasil[cur].label+":</b> "+r.key+"</div>")+
+  "<div><b>Pembahasan:</b> "+q.bahas+"</div>";
+ nx.classList.remove("hide");
+ fb.scrollIntoView({block:"nearest"});
+ nx.focus({preventScroll:true});
+}
+function akhir(){
+ app.innerHTML="";
+ var tot=0,got=0,salah=[];
+ SOAL.forEach(function(q,i){tot+=poin(q);if(hasil[i]&&hasil[i].ok)got+=poin(q);else salah.push(i)});
+ var nilai=Math.round(got/tot*100),lulus=nilai>=KKM;
+ var c=el("section","card");
+ c.innerHTML='<h2 class="center">Hasil Kuis</h2><div class="skor">'+got+' / '+tot+'</div><p class="center note">Nilai: '+nilai+'</p><p class="center">'+
+  (lulus?"Hebat! Kamu sudah memahami materi ini.":"Ayo belajar lagi. Baca pembahasan di bawah, lalu coba ulangi.")+'</p>';
+ var u=el("button","","Ulangi kuis");u.onclick=intro;
+ var w=el("div","center");w.appendChild(u);c.appendChild(w);app.appendChild(c);
+ var d=el("section","card");
+ if(!salah.length){d.innerHTML="<h2>Semua jawabanmu benar!</h2><p>Tidak ada soal yang perlu diperbaiki.</p>";}
+ else{
+  d.innerHTML="<h2>Soal yang perlu diperbaiki ("+salah.length+")</h2>";
+  salah.forEach(function(i){
+   var q=SOAL[i],h=hasil[i],r=el("div","rev");
+   r.innerHTML="<b>Soal "+(i+1)+".</b> "+q.teks;
+   if(q.visual)r.appendChild(visual(q.visual));
+   r.appendChild(el("div","","<b>Jawabanmu:</b> "+(h&&h.mine?esc(h.mine):"-")));
+   r.appendChild(el("div","","<b>"+(h?h.label:"Kunci")+":</b> "+(h?h.key:"")));
+   r.appendChild(el("div","","<b>Pembahasan:</b> "+q.bahas));
+   d.appendChild(r);
+  });
+ }
+ app.appendChild(d);
+ window.scrollTo(0,0);
+}
+intro();
+</script>
+</body>
+</html>
